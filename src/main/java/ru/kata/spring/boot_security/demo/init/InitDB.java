@@ -11,6 +11,8 @@ import ru.kata.spring.boot_security.demo.repository.UserRepository;
 
 import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -41,10 +43,17 @@ public class InitDB {
         roleRepository.save(roleAdmin);
         roleRepository.save(roleUser);
 
-        userRepository.save(new User("admin", passwordEncoder.encode("admin"),
-                "admin@mail.ru").addRoleToUser(roleAdmin).addRoleToUser(roleUser));
-        userRepository.save(new User("user", passwordEncoder.encode("user"),
-                "user@mail.ru").addRoleToUser(roleUser));
+        User adminUser = new User("admin", passwordEncoder.encode("admin"), "admin@mail.ru");
+        userRepository.save(adminUser);
+
+        User normalUser = new User("user", passwordEncoder.encode("user"), "user@mail.ru");
+        userRepository.save(normalUser);
+
+        adminUser.setRoles(new HashSet<>(Arrays.asList(roleAdmin, roleUser)));
+        normalUser.setRoles(new HashSet<>(Collections.singletonList(roleUser)));
+
+        userRepository.save(adminUser);
+        userRepository.save(normalUser);
     }
 
     @Bean

@@ -36,11 +36,6 @@ public class User implements UserDetails {
 
     }
 
-    public User addRoleToUser(Role role) {
-        this.roles.add(role);
-        return this;
-    }
-
     public Set<Role> getRoles() {
         return roles;
     }
