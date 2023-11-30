@@ -1,7 +1,8 @@
 package ru.kata.spring.boot_security.demo.service;
 
 
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.kata.spring.boot_security.demo.entity.User;
@@ -13,11 +14,12 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
+    @Autowired
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
-        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -38,8 +40,12 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void addUser(User user) {
-        user.setPassword(new BCryptPasswordEncoder().encode(user.getPassword()));
-        userRepository.save(user);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        try {
+            userRepository.save(user);
+        } catch (RuntimeException ignore) {
+            throw new RuntimeException("Username '" + user.getUsername() +  "' занят");
+        }
     }
 
     @Override
@@ -58,7 +64,7 @@ public class UserServiceImpl implements UserService {
             existingUser.setRoles(user.getRoles());
 
             if (!existingUser.getPassword().equals(user.getPassword())) {
-                existingUser.setPassword(new BCryptPasswordEncoder().encode(user.getPassword()));
+                existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
             }
         }
     }
